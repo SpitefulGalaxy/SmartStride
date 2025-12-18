@@ -1,0 +1,250 @@
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --background-color: #ecf0f1;
+    --text-color: #333;
+    --card-background: #fff;
+    --table-header-bg: #34495e;
+    --table-row-even: #f2f2f2;
+    --table-row-hover: #e6f3ff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: rgba(255, 255, 255, 0.95);
+    transition: all 0.3s ease-in-out;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar.scrolled {
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.98);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: var(--secondary-color);
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: var(--primary-color);
+}
+
+.container {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 100px 20px 20px; /* Added top padding to account for sticky header */
+}
+
+h1, h2 {
+    color: var(--secondary-color);
+}
+
+h1 {
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 30px;
+}
+
+h2 {
+    font-size: 1.8em;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-top: 30px;
+}
+
+.patient-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: var(--card-background);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.patient-table th, .patient-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.patient-table th {
+    background-color: var(--table-header-bg);
+    color: white;
+}
+
+.patient-table tr:nth-child(even) {
+    background-color: var(--table-row-even);
+}
+
+.patient-table tr:hover {
+    background-color: var(--table-row-hover);
+}
+
+.button {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #2980b9;
+}
+
+.device-status {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.footer {
+    background-color: var(--secondary-color);
+    color: white;
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: auto;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 80px 10px 10px;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    .patient-table {
+        font-size: 14px;
+    }
+
+    .patient-table th, .patient-table td {
+        padding: 8px;
+    }
+
+    .navbar {
+        flex-direction: column;
+        height: auto;
+        padding: 1rem 5%;
+    }
+
+    .nav-links {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Add styles for the dropdown menu */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    right: 0;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown-btn {
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.dropdown.active .dropdown-content {
+    display: block;
+}
+
+/* Add styles for the add patient form */
+.add-patient-form {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.add-patient-form input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.add-patient-form button {
+    padding: 8px 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.add-patient-form button:hover {
+    background-color: #2980b9;
+}

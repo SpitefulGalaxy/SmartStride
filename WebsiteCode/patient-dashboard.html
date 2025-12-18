@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <title>Patient Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_patientDash.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.umd.min.js"></script>
+
+</head>
+<body>
+    <nav class="navbar" id="sticky-header">
+        <a href="index.html" class="logo">SmartStride</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="software.html">Software</a>
+            <a href="device-guide.html">Help</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="column combined-column">
+            <div class="card">
+                <h2>Patient Information</h2>
+                <p class="patient-info" id="patientInfo">
+                    Loading patient information...
+                </p>
+            </div>
+
+            <!-- Monthly Step Classification -->
+            <div class="card large-card">
+                <h2>Monthly Session Details</h2>
+                <div class="graph-container">
+                    <div id="stepsPieChart" style="width: 100%; height: 300px;">
+                        <div class="loading-spinner"></div>
+                        <p class="loading-text">Loading step classification data...</p>
+                    </div>
+                    <div class="chart-legend" id="pieChartLegend"></div>
+                    <p style="text-align: center; margin-top: 25px; color: #666;">
+                        Data for: <span id="pieChartMonth">Loading...</span>
+                    </p>
+                    <p style="text-align: center; margin-top: 10px; color: #666;">
+                        Total Steps: <span id="totalStepsCount">Loading...</span>
+                    </p>
+                </div>
+                <button onclick="window.location.href='past-results.html'" class="button" style="margin-top: 20px;">
+                    See Past Results
+                </button>
+            </div>
+
+                <!-- EMG Analysis -->
+                <div class="card large-card clinician-only-graphs" style="display: none;">
+                    <h2>Average Angles Over 1 Gait Cycle</h2>
+                    <div class="graph-container">
+                        <div id="lastSessionGraph" style="width: 100%; height: 300px;">
+                            <div class="loading-spinner"></div>
+                            <p class="loading-text">Loading session data...</p>
+                        </div>
+                        <p class="severity-text" style="text-align: center;">
+                            <span id="stepPercentages">Loading step data...</span>
+                        </p>
+                        <p style="text-align: center; margin-top: 10px; color: #666;">
+                            Last session: <span id="lastSessionDate">Loading...</span>
+                        </p>
+                    </div>
+                </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="column right-column">
+            <div class="card">
+                <h2>Clinician Information</h2>
+                <p class="clinician-info" id="clinicianInfo">
+                    Loading clinician information...
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>Treatment Goals</h2>
+                <div id="goalsList">
+                    <!-- Goals will be dynamically inserted here -->
+                </div>
+                <div id="addGoalForm" style="display: none;">
+                    <textarea id="newGoalText" placeholder="Enter new goal"></textarea>
+                    <button onclick="addGoal()" class="button">Add Goal</button>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>ITW Severity Assessment</h2>
+                <div class="severity-scale">
+                    <div class="scale-bar">
+                        <div class="scale-segment normal"></div>
+                        <div class="scale-segment mild"></div>
+                        <div class="scale-segment moderate"></div>
+                        <div class="scale-segment severe"></div>
+                        <div class="scale-labels">
+                            <span>Normal</span>
+                            <span>Mild</span>
+                            <span>Moderate</span>
+                            <span>Severe</span>
+                        </div>
+                        <div class="indicator" id="severityIndicator"></div>
+                    </div>
+                </div>
+                <div class="severity-legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #44ff44"></div>
+                        <span class="legend-text">Normal</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ffff00"></div>
+                        <span class="legend-text">Mild</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ffa500"></div>
+                        <span class="legend-text">Moderate</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #ff4444"></div>
+                        <span class="legend-text">Severe</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-container">
+                <a href="device-guide.html" class="button">Access Device User Guide</a>
+                <a href="drag_and_drop.html" class="button">Upload CSV File</a>
+                <button id="backToClinicianBtn" class="button" onclick="window.location.href='clinician-dashboard.html'" style="display: none;">
+                    Back to Clinician Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 SmartStride. All rights reserved.</p>
+    </footer>
+
+    <script>
+        console.log('API Endpoint Check:');
+        console.log('Window protocol:', window.location.protocol);
+        console.log('Window hostname:', window.location.hostname);
+
+        const API_BASE_URL = 'https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest';
+        console.log('API Base URL:', API_BASE_URL);
+
+        // Function to update severity indicator based on data
+        function updateSeverityIndicator(data) {
+            const indicator = document.getElementById('severityIndicator');
+            if (!indicator) return;
+
+            // Find the highest count among Normal, Mild, Moderate, Severe
+            const counts = {
+                Normal: Number(data.Normal) || 0,
+                Mild: Number(data.Mild) || 0,
+                Moderate: Number(data.Moderate) || 0,
+                Severe: Number(data.Severe) || 0
+            };
+
+            // Find the highest count
+            const maxCount = Math.max(...Object.values(counts));
+            
+            // Find which category has the highest count
+            let position;
+            if (counts.Normal === maxCount) position = '13%';
+            else if (counts.Mild === maxCount) position = '37.5%';
+            else if (counts.Moderate === maxCount) position = '60%';
+            else if (counts.Severe === maxCount) position = '86%';
+            
+            // Update the indicator position
+            indicator.style.left = position;
+        }
+
+        const header = document.getElementById('sticky-header');
+        let scrolled = false;
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20 && !scrolled) {
+                header.classList.add('scrolled');
+                scrolled = true;
+            } else if (window.scrollY <= 20 && scrolled) {
+                header.classList.remove('scrolled');
+                scrolled = false;
+            }
+        });
+
+        // Load and display patient data
+        // Inside the DOMContentLoaded event listener
+        document.addEventListener('DOMContentLoaded', async function() {    
+            try {
+                const userData = JSON.parse(sessionStorage.getItem('userData'));
+                const selectedPatient = sessionStorage.getItem('selectedPatient');
+                console.log('Initial load - userData:', userData);
+                console.log('Initial load - selectedPatient:', selectedPatient);
+
+                const backButton = document.getElementById('backToClinicianBtn');
+                
+                if (!userData) {
+                    window.location.href = 'patient-login.html';
+                    return;
+                }
+
+                // Explicitly handle button visibility
+                if (backButton) {
+                    if (selectedPatient) {
+                        console.log('Clinician view - showing back button');
+                        backButton.style.display = 'block';
+                    } else {
+                        console.log('Patient view - hiding back button');
+                        backButton.style.display = 'none';
+                    }
+                }
+
+                // Move the session data fetching outside of the if (selectedPatient) block
+                // and make it a separate async function
+                async function fetchAndDisplaySessionData() {
+                    try {
+                        const username = selectedPatient || userData.username;
+                        console.log('Attempting to fetch session data for username:', username);
+                        
+                        const response = await fetch(`${API_BASE_URL}/ITW_GetCSV`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ username: username })
+                        });
+
+                        console.log('Raw response data:', response);
+                        const data = await response.json();
+                        console.log('Raw response data:', data);
+                        console.log('Parsed body:', JSON.parse(data.body));
+                        console.log('Full data structure:', {
+                            statusCode: data.statusCode,
+                            body: JSON.parse(data.body),
+                            emgTime: JSON.parse(data.body).emgTime
+                        });
+
+                        if (data.statusCode === 200 && data.body) {
+                            const parsedBody = JSON.parse(data.body);
+                            const sessionData = parsedBody.sessionData;
+                            const emgTime = parsedBody.emgTime;  // Extract EMG time from parsed body
+                            
+                            console.log('Session data parsed successfully:', sessionData);
+                            console.log('EMG Time:', emgTime);
+                            console.log('EMG Time type:', typeof emgTime);
+                            console.log('EMG Time value:', emgTime);
+                            console.log('Minimum angle:', Math.min(...sessionData.map(point => point.angle)));
+
+                            // Create and display the graph
+                            const chartContainer = document.getElementById('lastSessionGraph');
+                            chartContainer.innerHTML = ''; // Clear loading elements
+
+                            const canvas = document.createElement('canvas');
+                            chartContainer.appendChild(canvas);
+
+                            const ctx = canvas.getContext('2d');
+                            const datasets = [{
+                                type: 'line',
+                                label: 'Average Angles Over 1 Gait Cycle',
+                                data: sessionData.map(point => ({
+                                    x: point.time,
+                                    y: point.angle
+                                })),
+                                borderColor: 'rgb(75, 192, 192)',
+                                borderWidth: 1,
+                                tension: 0.4,
+                                fill: false,
+                                pointRadius: 0,
+                                pointHitRadius: 5
+                            }];
+
+                            if (typeof emgTime === 'number' && !isNaN(emgTime)) {
+                                // Calculate the min and max y-values from your data
+                                const minY = -40;//Math.min(...sessionData.map(point => point.angle));
+                                const maxY = 50;//Math.max(...sessionData.map(point => point.angle));
+
+                                // Create an array of y-values for the vertical line
+                                const numDots = 20;
+                                const yStep = (maxY - minY) / (numDots - 1);
+                                const verticalDots = Array.from({ length: numDots }, (_, i) => ({
+                                    x: emgTime,
+                                    y: minY + i * yStep
+                                }));
+
+                                datasets.push({
+                                    type: 'scatter',
+                                    label: 'EMG Time',
+                                    data: verticalDots,
+                                    backgroundColor: 'red',
+                                    borderColor: 'red',
+                                    pointStyle: 'circle',
+                                    pointRadius: 2,
+                                    pointHoverRadius: 10,
+                                    order: 1,
+                                    borderWidth: 1,
+                                    pointBackgroundColor: 'red',
+                                    z: 100
+                                });
+                            }
+
+                            new Chart(ctx, {
+                                type: 'line',
+                                data: { datasets },
+                                options: {
+                                    responsive: true,
+                                    animation: {
+                                        duration: 0
+                                    },
+                                    scales: {
+                                        x: {
+                                            type: 'linear',
+                                            title: {
+                                                display: true,
+                                                text: 'Time (s)'
+                                            }
+                                        },
+                                        y: {
+                                            title: {
+                                                display: true,
+                                                text: 'Angle (degrees)'
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        title: {
+                                            display: true,
+                                            text: 'Averages Over 1 Gait Cycle For ITW vs Normal Step'
+                                        },
+                                        legend: {
+                                            display: true,
+                                            position: 'bottom'
+                                        }
+                                    }
+                                }
+                            });
+
+                            document.getElementById('stepPercentages').parentElement.style.display = 'none';
+                            document.getElementById('lastSessionDate').parentElement.style.display = 'none';
+                        } else {
+                            console.error('Invalid response from GetCSV:', data);
+                            document.getElementById('lastSessionGraph').innerHTML = 'No session data available';
+                        }
+                    } catch (error) {
+                        console.error('Error in fetchAndDisplaySessionData:', error);
+                        document.getElementById('lastSessionGraph').innerHTML = 'Error loading session data';
+                    }
+                }
+
+                // If viewing as a doctor (selectedPatient exists)
+                if (selectedPatient) {
+                    try {
+                        console.log('Loading patient data for:', selectedPatient);
+                        
+                        const requestBody = { username: selectedPatient };
+                        console.log('Making API request to:', `${API_BASE_URL}/GetPatientData`);
+                        const response = await fetch(`${API_BASE_URL}/GetPatientData`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(requestBody)
+                        });
+                        console.log('API Response:', response);
+                        
+                        const responseData = await response.json();
+                        console.log('Response Data:', responseData);
+                        
+                        // Check if responseData has a body that needs to be parsed
+                        const parsedData = responseData.body ? JSON.parse(responseData.body) : responseData;
+                        console.log('Parsed data:', parsedData);
+                        
+                        if (response.ok) {
+                            if (parsedData.patientData) {
+                                const patientData = parsedData.patientData;
+                                const doctorFullName = patientData.doctor_first_name && patientData.doctor_last_name ? 
+                                    `${patientData.doctor_last_name}, ${patientData.doctor_first_name}` : 
+                                    'Not Assigned';
+                                console.log('Doctor full name:', doctorFullName);
+                                
+                                // Update patient information
+                                document.getElementById('patientInfo').innerHTML = `
+                                    Name: ${patientData.last_name}, ${patientData.first_name}<br>
+                                    Username: ${patientData.username}<br>
+                                    Assigned Doctor: ${doctorFullName}<br>
+                                    Last Update from Device: ${new Date().toLocaleString()}
+                                `;
+
+                                // Update clinician information
+                                document.getElementById('clinicianInfo').innerHTML = `
+                                    Doctor: ${doctorFullName}<br>
+                                    For more information, please contact your clinic.
+                                `;
+                            } else {
+                                console.error('Patient data not found in parsed response:', parsedData);
+                                alert('Error: Patient data not found in response');
+                                window.location.href = 'clinician-dashboard.html';
+                            }
+                        } else {
+                            console.error('Error response:', responseData);
+                            alert('Error loading patient data: ' + (responseData.message || 'Unknown error'));
+                            window.location.href = 'clinician-dashboard.html';
+                        }
+                    } catch (error) {
+                        console.error('API Error:', error);
+                        console.error('Error details:', {
+                            message: error.message,
+                            stack: error.stack
+                        });
+                        console.error('Error loading patient data:', error);
+                        alert('Error loading patient data: ' + error.message);
+                        window.location.href = 'clinician-dashboard.html';
+                    }
+                } else {
+                    // Regular patient view
+                    try {
+                        // First fetch the doctor's information if there's a doctor assigned
+                        let doctorFullName = 'Not Assigned';
+                        console.log('Attempting to fetch doctor information for:', userData.doctor);
+                        
+                        if (userData.doctor) {
+                            console.log('Making API request to:', `${API_BASE_URL}/GetPatientData`);
+                            const doctorResponse = await fetch(`${API_BASE_URL}/GetPatientData`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({ username: userData.doctor })
+                            });
+                            console.log('Doctor API Response:', doctorResponse);
+
+                            if (doctorResponse.ok) {
+                                const doctorData = await doctorResponse.json();
+                                console.log('Doctor Response Data:', doctorData);
+                                
+                                const parsedDoctorData = doctorData.body ? JSON.parse(doctorData.body) : doctorData;
+                                console.log('Parsed Doctor Data:', parsedDoctorData);
+                                
+                                if (parsedDoctorData.patientData) {
+                                    doctorFullName = `${parsedDoctorData.patientData.last_name}, ${parsedDoctorData.patientData.first_name}`;
+                                    console.log('Set doctor full name to:', doctorFullName);
+                                } else {
+                                    console.log('No patient data found in doctor response');
+                                }
+                            } else {
+                                console.error('Doctor API response not OK:', doctorResponse.status);
+                            }
+                        } else {
+                            console.log('No doctor assigned to user');
+                        }
+                        
+                        console.log('Updating DOM with doctor name:', doctorFullName);
+                        document.getElementById('patientInfo').innerHTML = `
+                            Name: ${userData.last_name}, ${userData.first_name}<br>
+                            Username: ${userData.username}<br>
+                            Assigned Doctor: ${doctorFullName}<br>
+                            Last Update from Device: ${new Date().toLocaleString()}
+                        `;
+
+                        document.getElementById('clinicianInfo').innerHTML = `
+                            Doctor: ${doctorFullName}<br>
+                            For more information, please contact your clinic.
+                        `;
+                    } catch (error) {
+                        console.error('API Error:', error);
+                        console.error('Error details:', {
+                            message: error.message,
+                            stack: error.stack
+                        });
+                        // Fall back to just showing the doctor username if there's an error
+                        document.getElementById('patientInfo').innerHTML = `
+                            Name: ${userData.last_name}, ${userData.first_name}<br>
+                            Username: ${userData.username}<br>
+                            Assigned Doctor: ${userData.doctor || 'Not Assigned'}<br>
+                            Last Update from Device: ${new Date().toLocaleString()}
+                        `;
+
+                        document.getElementById('clinicianInfo').innerHTML = `
+                            Doctor: ${userData.doctor || 'Not Assigned'}<br>
+                            For more information, please contact your clinic.
+                        `;
+                    }
+                }
+
+                // Call the session data fetching function after patient/clinician data is loaded
+                await fetchAndDisplaySessionData();
+
+                console.log('About to fetch pie chart data...');
+                try {
+                    await fetchAndDisplayPieChartData();
+                    console.log('Pie chart data fetch completed');
+                } catch (error) {
+                    console.error('Error in fetchAndDisplayPieChartData:', error);
+                }
+
+                console.log('Checking visibility conditions:');
+                console.log('selectedPatient:', sessionStorage.getItem('selectedPatient'));
+                console.log('backButton element:', document.getElementById('backToClinicianBtn'));
+                
+                await loadGoals();
+
+                // Show clinician-only graphs if viewing as clinician
+                const clinicianGraphSections = document.querySelectorAll('.clinician-only-graphs');
+                if (selectedPatient) {
+                    console.log('Showing clinician-only graphs');
+                    clinicianGraphSections.forEach(section => {
+                        section.style.display = 'block';
+                    });
+                }
+            } catch (error) {
+                console.error('Error in DOMContentLoaded:', error);
+            }
+        });
+
+        async function loadGoals() {
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
+            const selectedPatient = sessionStorage.getItem('selectedPatient');
+            const username = selectedPatient || userData.username;
+            
+            try {
+                console.log('Fetching goals for username:', username);
+                const response = await fetch(`${API_BASE_URL}/GoalHandler`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'getGoals',
+                        username: username
+                    })
+                });
+                
+                const responseData = await response.json();
+                console.log('Goals response:', responseData);
+
+                // Parse the response body if it's a string
+                const data = responseData.body ? JSON.parse(responseData.body) : responseData;
+                console.log('Parsed goals data:', data);
+
+                const goalsContainer = document.getElementById('goalsList');
+                const addGoalForm = document.getElementById('addGoalForm');
+                
+                // Show add goal form only for clinicians
+                if (selectedPatient) {
+                    addGoalForm.style.display = 'block';
+                }
+                
+                goalsContainer.innerHTML = '';
+                
+                if (data.goals && data.goals.length > 0) {
+                    data.goals.forEach(goal => {
+                        const goalElement = document.createElement('div');
+                        goalElement.className = 'goal-item';
+                        goalElement.innerHTML = `
+                            <input type="checkbox" 
+                                   ${goal.completed ? 'checked' : ''} 
+                                   ${selectedPatient ? '' : 'disabled'}
+                                   onchange="updateGoal(${goal.id}, this.checked)">
+                            <span>${goal.goal_description}</span>
+                            ${selectedPatient ? 
+                                `<button onclick="deleteGoal(${goal.id})" class="delete-goal">×</button>` 
+                                : ''}
+                        `;
+                        goalsContainer.appendChild(goalElement);
+                    });
+                } else {
+                    goalsContainer.innerHTML = '<p>No goals set yet.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading goals:', error);
+                document.getElementById('goalsList').innerHTML = '<p>Error loading goals</p>';
+            }
+        }
+
+        async function addGoal() {
+            const newGoalText = document.getElementById('newGoalText').value.trim();
+            if (!newGoalText) return;
+            
+            const selectedPatient = sessionStorage.getItem('selectedPatient');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/GoalHandler`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'addGoal',
+                        username: selectedPatient,
+                        goals: newGoalText
+                    })
+                });
+                
+                document.getElementById('newGoalText').value = '';
+                loadGoals();
+            } catch (error) {
+                console.error('Error adding goal:', error);
+            }
+        }
+
+        async function updateGoal(goalId, completed) {
+            const selectedPatient = sessionStorage.getItem('selectedPatient');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/GoalHandler`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'updateGoal',
+                        username: selectedPatient,
+                        goalId: goalId,
+                        completed: completed
+                    })
+                });
+            } catch (error) {
+                console.error('Error updating goal:', error);
+            }
+        }
+
+        async function deleteGoal(goalId) {
+            if (!confirm('Are you sure you want to delete this goal?')) return;
+            
+            const selectedPatient = sessionStorage.getItem('selectedPatient');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/GoalHandler`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'deleteGoal',
+                        username: selectedPatient,
+                        goalId: goalId
+                    })
+                });
+                
+                loadGoals();
+            } catch (error) {
+                console.error('Error deleting goal:', error);
+            }
+        }
+
+        async function fetchAndDisplayPieChartData() {
+            console.log('Starting fetchAndDisplayPieChartData');
+            try {
+                // Get user data from session storage (username and user type)
+                const userData = JSON.parse(sessionStorage.getItem('userData'));
+                console.log('userData from session:', userData);
+                
+                const selectedPatient = sessionStorage.getItem('selectedPatient');
+                console.log('selectedPatient from session:', selectedPatient);
+                
+                const username = selectedPatient || userData.username;
+                const currentDate = new Date();
+                
+                console.log('Will fetch pie chart data for:', {
+                    username,
+                    month: currentDate.getMonth() + 1,
+                    year: currentDate.getFullYear()
+                });
+                
+                const response = await fetch(`${API_BASE_URL}/GetPieChartData`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        username: username,
+                        month: currentDate.getMonth() + 1,
+                        year: currentDate.getFullYear()
+                    })
+                });
+
+                console.log('Pie chart response status:', response.status);
+                const responseData = await response.json();
+                console.log('Pie chart response data:', responseData);
+
+                // Parse the nested body string
+                const data = JSON.parse(responseData.body.body);
+                console.log('Parsed pie chart data:', data);
+
+                if (response.status === 200 && data) {
+                    // Create the pie chart
+                    const chartContainer = document.getElementById('stepsPieChart');
+                    chartContainer.innerHTML = ''; // Clear loading elements
+
+                    // Convert string values to numbers for the chart
+                    const currentMonthData = {
+                        Normal: Number(data.currentMonth.Normal) || 0,
+                        Mild: Number(data.currentMonth.Mild) || 0,
+                        Moderate: Number(data.currentMonth.Moderate) || 0,
+                        Severe: Number(data.currentMonth.Severe) || 0,
+                        Total: Number(data.currentMonth.Total) || 0,
+                        month: data.currentMonth.month,
+                        year: data.currentMonth.year
+                    };
+
+                    console.log('Current month data for chart:', currentMonthData);
+
+                    if (currentMonthData.Mild === 0 && currentMonthData.Moderate === 0) {
+                        createNewPieChart('stepsPieChart', currentMonthData, 'Current Month Step Classification');
+                    } else {
+                        createPieChart('stepsPieChart', currentMonthData, 'Current Month Step Classification');
+                    }
+
+                    
+                    // Update the month display
+                    document.getElementById('pieChartMonth').textContent = 
+                        new Date(currentMonthData.year, currentMonthData.month - 1).toLocaleString('default', { 
+                            month: 'long', 
+                            year: 'numeric' 
+                        });
+
+                    // Update total steps count
+                    document.getElementById('totalStepsCount').textContent = currentMonthData.Total.toLocaleString();
+
+                    // Update severity indicator based on the data
+                    updateSeverityIndicator(currentMonthData);
+                } else {
+                    console.error('Invalid response from GetPieChartData:', responseData);
+                    document.getElementById('stepsPieChart').innerHTML = 'No classification data available';
+                }
+            } catch (error) {
+                console.error('Error in fetchAndDisplayPieChartData:', error);
+                document.getElementById('stepsPieChart').innerHTML = 'Error loading step classification data';
+            }
+        }
+
+        function createPieChart(containerId, data, title) {
+            const chartContainer = document.getElementById(containerId);
+            chartContainer.innerHTML = '';
+
+            const canvas = document.createElement('canvas');
+            chartContainer.appendChild(canvas);
+
+            const colors = {
+                Normal: '#44ff44',
+                Mild: '#ffff00',
+                Moderate: '#ffa500',
+                Severe: '#ff4444'
+            };
+
+            // Calculate the percentage of step types
+            const total = data.Total || Object.values(data).reduce((sum, val) => 
+                typeof val === 'number' ? sum + val : sum, 0);
+
+            const datasets = {
+                labels: ['Normal', 'Mild', 'Moderate', 'Severe'],
+                datasets: [{
+                    data: [
+                        (data.Normal / total) * 100,
+                        (data.Mild / total) * 100,
+                        (data.Moderate / total) * 100,
+                        (data.Severe / total) * 100
+                    ],
+                    backgroundColor: Object.values(colors),
+                    borderWidth: 1
+                }]
+            };
+
+            // Create the pie chart
+            new Chart(canvas, {
+                type: 'pie',
+                data: datasets,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    return `${label}: ${value.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Update legend
+            const legend = document.createElement('div');
+            legend.className = 'chart-legend';
+            legend.innerHTML = Object.entries(colors).map(([key, color]) => `
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: ${color}"></div>
+                    <span class="legend-text">${key}</span>
+                </div>
+            `).join('');
+            chartContainer.appendChild(legend);
+        }
+
+
+        function createNewPieChart(containerId, data, title) {
+            const chartContainer = document.getElementById(containerId);
+            chartContainer.innerHTML = '';
+
+            const canvas = document.createElement('canvas');
+            chartContainer.appendChild(canvas);
+
+            const colors = {
+                Normal: '#44ff44',
+                ITW: '#ff4444'
+            };
+
+            // Calculate the percentage of step types
+            const total = data.Total || Object.values(data).reduce((sum, val) => 
+                typeof val === 'number' ? sum + val : sum, 0);
+
+            const datasets = {
+                labels: ['Normal', 'ITW Steps'],
+                datasets: [{
+                    data: [
+                        (data.Normal / total) * 100,
+                        (data.Severe / total) * 100
+                    ],
+                    backgroundColor: Object.values(colors),
+                    borderWidth: 1
+                }]
+            };
+
+            // Create the pie chart
+            new Chart(canvas, {
+                type: 'pie',
+                data: datasets,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: title
+                        },
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    return `${label}: ${value.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Update legend
+            const legend = document.createElement('div');
+            legend.className = 'chart-legend';
+            legend.innerHTML = `
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: ${colors.Normal}"></div>
+                    <span class="legend-text">Normal</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: ${colors.ITW}"></div>
+                    <span class="legend-text">ITW Steps</span>
+                </div>
+            `;
+            chartContainer.appendChild(legend);
+        }
+    </script>
+</body>
+</html>

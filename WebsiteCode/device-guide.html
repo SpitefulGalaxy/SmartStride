@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_deviceGuide.css">
+    <style>
+        .manual-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 15px;
+            transition: background-color 0.3s;
+        }
+        .manual-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar" id="sticky-header">
+        <a href="index.html" class="logo">SmartStride</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="software.html">Software</a>
+            <a href="patient-login.html">Login</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Device User Guide</h1>
+        
+        <div class="card toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#initial-startup">Initial Startup</a></li>
+                <li><a href="#device-settings">Device Settings</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#developer-section">Developer Resources</a></li>
+            </ul>
+        </div>
+        
+        <div class="card" id="initial-startup">
+            <h2>Turning on Device for the First Time</h2>
+            <p class="device-guide">
+                This section of the guide explains how to turn on the device for the first time. It will 
+                walk you through the initial setup process and provide tips for troubleshooting common issues.
+            </p>
+
+            <a href="Docs/Smart%20Stride%20Manual.pdf" class="manual-button" target="_blank">Download Device Manual</a>
+        </div>
+        
+        <div class="card" id="device-settings">
+            <h2>Device Settings</h2>
+            <p class="device-guide">
+                This section will cover the various settings available on your profile and how to customize them to your preferences.
+            </p>
+            <a href="Docs/User%20Manual.pdf" class="manual-button" target="_blank">Download User Manual</a>
+        </div>
+        
+        <div class="card" id="developer-section">
+            <h2>Developer Resources</h2>
+            <p class="device-guide">
+                This section contains technical documentation and resources for developers working with the SmartStride device.
+                Here you'll find detailed information about the device's architecture, APIs, and development guidelines.
+            </p>
+            <a href="Docs/Dev%20Manual.pdf" class="manual-button" target="_blank">Download Developer Manual</a>
+        </div>
+        
+        <div class="card" id="troubleshooting">
+            <h2>Troubleshooting</h2>
+            <p class="device-guide">
+                If you encounter any issues with your device, this section provides solutions to common problems and guidance on when to seek professional assistance.
+            </p>
+            <a href="Docs/Smart%20Stride%20Manual.pdf" class="manual-button" target="_blank">Download Troubleshooting Manual</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 SmartStride. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const header = document.getElementById('sticky-header');
+        let scrolled = false;
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20 && !scrolled) {
+                header.classList.add('scrolled');
+                scrolled = true;
+            } else if (window.scrollY <= 20 && scrolled) {
+                header.classList.remove('scrolled');
+                scrolled = false;
+            }
+        });
+    </script>
+</body>
+</html>

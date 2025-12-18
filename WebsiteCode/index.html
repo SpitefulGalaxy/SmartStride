@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartStride: Toe Walking Rehab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_index.css">
+</head>
+<body>
+    <nav class="navbar" id="sticky-header">
+        <a href="#" class="logo">SmartStride</a>
+        <div class="nav-links">
+            <a href="about.html">About</a>
+            <a href="software.html">Software</a>
+            <a href="device-guide.html">Help</a>
+            <a href="patient-login.html">Login</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="title">SmartStride: Toe Walking Rehab</h1>
+                <p class="subtitle">Revolutionizing rehabilitation for Idiopathic Toe Walking</p>
+                <a href="sign_up.html" class="cta-button">Get Started</a>
+            </div>
+        </section>
+
+        <section id="about" class="section">
+            <h2 class="section-title">About SmartStride</h2>
+            <p class="paragraph">This device is dedicated to advancing rehabilitation for individuals with Idiopathic Toe Walking (ITW) by enhancing daily interaction between patients and healthcare professionals. Our device features a compression sock embedded with EMG and IMU sensors, allowing for real-time monitoring of a patient’s walk to provide clinicians with continuous, precise data on progress and ITW evaluation. By utilizing machine learning, our device classifies ITW severity on a sliding scale, allowing for more targeted and effective care. Data from the device integrates seamlessly into this user-friendly web application, accessible to both clinicians and patients, supporting early problem identification and potentially reducing recovery and rehabilitation time.</p>
+        </section>
+
+        <section id="login" class="login-section">
+            <h3 class="loginTitle">Access Your Account</h3>
+            <div class="center-button">
+                <a href="patient-login.html" class="button">Patient Login</a>
+                <a href="clinician_login.html" class="button">Clinician Login</a>
+                <a href="sign_up.html" class="button">Sign Up</a>
+            </div>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 SmartStride. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const header = document.getElementById('sticky-header');
+        let scrolled = false;
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20 && !scrolled) {
+                header.classList.add('scrolled');
+                scrolled = true;
+            } else if (window.scrollY <= 20 && scrolled) {
+                header.classList.remove('scrolled');
+                scrolled = false;
+            }
+        });
+    </script>
+</body>
+</html>

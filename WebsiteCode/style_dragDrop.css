@@ -1,0 +1,165 @@
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --background-color: #f8f9fa;
+    --text-color: #333;
+    --footer-color: #e0e0e0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+nav ul {
+    list-style-type: none;
+    display: flex;
+}
+
+nav ul li {
+    margin-left: 20px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+}
+
+nav a:hover {
+    opacity: 0.8;
+}
+
+main {
+    flex: 1;
+    padding: 2rem 0;
+}
+
+h1 {
+    color: var(--background-color);
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
+}
+
+.upload-section {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.drop-zone {
+    border: 2px dashed var(--primary-color);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.drop-zone p {
+    margin-bottom: 0;
+    color: var(--secondary-color);
+}
+
+#file-list {
+    margin-top: 1rem;
+}
+
+#file-list .file-item {
+    background-color: var(--background-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#file-list .file-item .file-name {
+    flex-grow: 1;
+}
+
+#file-list .file-item .file-size {
+    margin-left: 1rem;
+    color: var(--secondary-color);
+}
+
+footer {
+    background-color: var(--secondary-color);
+    color: var(--background-color);
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: auto;
+}
+
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+    }
+
+    nav ul li {
+        margin: 10px 0;
+    }
+}
+
+.dashboard-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.dashboard-btn:hover {
+    background-color: #2980b9;  /* Darker shade of the primary color */
+    opacity: 0.9;
+}

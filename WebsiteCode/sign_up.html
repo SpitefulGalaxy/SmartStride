@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - SmartStride</title>
+    <link rel="stylesheet" href="style_signUp.css">
+</head>
+<body>
+    <header>
+        <nav class="container_head">
+            <h1>SmartStride</h1>
+            <ul>
+                <a href="index.html">Home</a>
+                <a href="about.html">About</a>
+                <a href="software.html">Software</a>
+                <a href="device-guide.html">Help</a>
+                <a href="patient-login.html">Login</a>
+                
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="container">
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" name="firstName" required>
+
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" name="lastName" required>
+
+                <label for="userType">I am a:</label>
+                <select id="userType" name="userType" required>
+                    <option value="">Select...</option>
+                    <option value="patient">Patient</option>
+                    <option value="doctor">Doctor</option>
+                </select>
+
+                <div id="doctorUsernameField" style="display: none;">
+                    <label for="doctorUsername">Clinician's Username</label>
+                    <input type="text" id="doctorUsername" name="doctorUsername">
+                    <div class="permission-notice">
+                        <p>⚠️ By linking your account to a clinician, you acknowledge and consent that they will have access to view, analyze, and manage your medical data, including but not limited to: gait analysis, movement patterns, progress reports, and any other health-related information shared through this platform. This permission is necessary for providing healthcare services and maintaining proper medical oversight of your treatment.</p>
+                    </div>
+                </div>
+
+                <label for="securityQuestion">Security Question</label>
+                <select id="securityQuestion" name="securityQuestion" required>
+                    <option value="">Select a security question...</option>
+                    <option value="pet">What was the name of your first pet?</option>
+                    <option value="school">What elementary school did you attend?</option>
+                    <option value="city">In what city were you born?</option>
+                </select>
+
+                <label for="securityAnswer">Security Answer</label>
+                <input type="text" id="securityAnswer" name="securityAnswer" required>
+
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit">Sign Up</button>
+            </form>
+            <p class="login-link">Already have an account? <a href="patient-login.html">Login</a></p>
+        </div>
+    </main>
+    <footer class="footer">
+        <p>&copy; 2024 SmartStride. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('userType').addEventListener('change', function() {
+            const doctorUsernameField = document.getElementById('doctorUsernameField');
+            if (this.value === 'patient') {
+                doctorUsernameField.style.display = 'block';
+                doctorUsernameField.classList.add('fade-in');
+            } else {
+                doctorUsernameField.style.display = 'none';
+                doctorUsernameField.classList.remove('fade-in');
+            }
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                userType: document.getElementById('userType').value,
+                doctorUsername: document.getElementById('doctorUsername').value,
+                securityQuestion: document.getElementById('securityQuestion').value,
+                securityAnswer: document.getElementById('securityAnswer').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            console.log('Sending data:', JSON.stringify(formData));
+
+            try {
+                const response = await fetch('https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest/signUpAPI', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Sign up successful!');
+                    // Redirect to login page or dashboard
+                    window.location.href = formData.userType === 'patient' ? 'patient-login.html' : 'clinician_login.html';
+                } else {
+                    alert(`Sign up failed: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

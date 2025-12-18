@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Results - SmartStride</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_patientDash.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style_pastResults.css">
+</head>
+<body>
+    <nav class="navbar" id="sticky-header">
+        <a href="index.html" class="logo">SmartStride</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="software.html">Software</a>
+            <a href="device-guide.html">Help</a>
+        </div>
+    </nav>
+
+    <div class="past-results-container">
+        <div class="header-section">
+            <h1>Past Results</h1>
+            <button onclick="window.location.href='patient-dashboard.html'" class="button">
+                Back to Dashboard
+            </button>
+        </div>
+        
+        <div class="filter-section">
+            <div class="date-range">
+                <label for="startDate">From:</label>
+                <input type="month" id="startDate" class="date-input">
+                <label for="endDate">To:</label>
+                <input type="month" id="endDate" class="date-input">
+            </div>
+            <button onclick="applyFilters()" class="button">Apply Filters</button>
+            <button onclick="resetFilters()" class="button secondary">Reset</button>
+        </div>
+        
+        <div class="charts-grid" id="chartsContainer">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Loading past results...</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 SmartStride. All rights reserved.</p>
+    </footer>
+
+    <script>
+        async function fetchPastResults() {
+            try {
+                const userData = JSON.parse(sessionStorage.getItem('userData'));
+                const selectedPatient = sessionStorage.getItem('selectedPatient');
+                const username = selectedPatient || userData.username;
+
+                // Get data for the past 12 months
+                const currentDate = new Date();
+                const months = [];
+                
+                for (let i = 0; i < 12; i++) {
+                    const month = currentDate.getMonth() - i;
+                    const year = currentDate.getFullYear();
+                    months.push({
+                        month: month < 0 ? month + 12 : month + 1,
+                        year: month < 0 ? year - 1 : year
+                    });
+                }
+
+                const chartsContainer = document.getElementById('chartsContainer');
+                chartsContainer.innerHTML = ''; // Clear loading spinner
+
+                // Fetch and display data for each month
+                for (const { month, year } of months) {
+                    const response = await fetch('https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest/GetPieChartData', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username, month, year })
+                    });
+
+                    const responseData = await response.json();
+                    const data = JSON.parse(responseData.body.body);
+
+                    if (data.currentMonth.Total > 0) {  // Only show months with data
+                        const chartDiv = document.createElement('div');
+                        chartDiv.className = 'chart-card';
+                        
+                        const monthName = new Date(year, month - 1).toLocaleString('default', { 
+                            month: 'long', 
+                            year: 'numeric' 
+                        });
+                        
+                        chartDiv.innerHTML = `
+                            <h3>${monthName}</h3>
+                            <div class="chart-container">
+                                <canvas></canvas>
+                            </div>
+                            <div class="chart-stats">
+                                <p>Total Steps: ${data.currentMonth.Total}</p>
+                            </div>
+                        `;
+                        
+                        chartsContainer.appendChild(chartDiv);
+                        
+                        // Create pie chart
+                        createPieChart(chartDiv.querySelector('canvas'), {
+                            Normal: Number(data.currentMonth.Normal),
+                            Mild: Number(data.currentMonth.Mild),
+                            Moderate: Number(data.currentMonth.Moderate),
+                            Severe: Number(data.currentMonth.Severe)
+                        });
+                    }
+                }
+
+                if (chartsContainer.children.length === 0) {
+                    chartsContainer.innerHTML = '<p class="no-data">No past results available</p>';
+                }
+
+            } catch (error) {
+                console.error('Error fetching past results:', error);
+                document.getElementById('chartsContainer').innerHTML = 
+                    '<p class="error">Error loading past results</p>';
+            }
+        }
+
+        function createPieChart(canvas, data) {
+            const colors = {
+                Normal: '#44ff44',
+                Mild: '#ffff00',
+                Moderate: '#ffa500',
+                Severe: '#ff4444'
+            };
+
+            const total = Object.values(data).reduce((sum, val) => sum + val, 0);
+
+            new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: ['Normal', 'Mild', 'Moderate', 'Severe'],
+                    datasets: [{
+                        data: [
+                            (data.Normal / total) * 100,
+                            (data.Mild / total) * 100,
+                            (data.Moderate / total) * 100,
+                            (data.Severe / total) * 100
+                        ],
+                        backgroundColor: Object.values(colors),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    return `${label}: ${value.toFixed(1)}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function applyFilters() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+
+            const [startYear, startMonth] = startDate.split('-').map(Number);
+            const [endYear, endMonth] = endDate.split('-').map(Number);
+
+            // Validate date range
+            const start = new Date(startYear, startMonth - 1);
+            const end = new Date(endYear, endMonth - 1);
+            
+            if (start > end) {
+                alert('Start date must be before end date');
+                return;
+            }
+
+            fetchFilteredResults(startYear, startMonth, endYear, endMonth);
+        }
+
+        function resetFilters() {
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            fetchPastResults(); // Fetch all results again
+        }
+
+        async function fetchFilteredResults(startYear, startMonth, endYear, endMonth) {
+            try {
+                const userData = JSON.parse(sessionStorage.getItem('userData'));
+                const selectedPatient = sessionStorage.getItem('selectedPatient');
+                const username = selectedPatient || userData.username;
+
+                const months = [];
+                let currentDate = new Date(startYear, startMonth - 1);
+                const endDate = new Date(endYear, endMonth - 1);
+
+                while (currentDate <= endDate) {
+                    months.push({
+                        month: currentDate.getMonth() + 1,
+                        year: currentDate.getFullYear()
+                    });
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                }
+
+                const chartsContainer = document.getElementById('chartsContainer');
+                chartsContainer.innerHTML = '<div class="loading-spinner"></div><p class="loading-text">Loading filtered results...</p>';
+
+                // Rest of the fetching logic remains the same as in fetchPastResults
+                for (const { month, year } of months) {
+                    const response = await fetch('https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest/GetPieChartData', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username, month, year })
+                    });
+
+                    const responseData = await response.json();
+                    const data = JSON.parse(responseData.body.body);
+
+                    if (data.currentMonth.Total > 0) {
+                        // Clear loading spinner before adding first chart
+                        if (chartsContainer.querySelector('.loading-spinner')) {
+                            chartsContainer.innerHTML = '';
+                        }
+                        
+                        const chartDiv = document.createElement('div');
+                        chartDiv.className = 'chart-card';
+                        
+                        const monthName = new Date(year, month - 1).toLocaleString('default', { 
+                            month: 'long', 
+                            year: 'numeric' 
+                        });
+                        
+                        chartDiv.innerHTML = `
+                            <h3>${monthName}</h3>
+                            <div class="chart-container">
+                                <canvas></canvas>
+                            </div>
+                            <div class="chart-stats">
+                                <p>Total Steps: ${data.currentMonth.Total}</p>
+                            </div>
+                        `;
+                        
+                        chartsContainer.appendChild(chartDiv);
+                        
+                        createPieChart(chartDiv.querySelector('canvas'), {
+                            Normal: Number(data.currentMonth.Normal),
+                            Mild: Number(data.currentMonth.Mild),
+                            Moderate: Number(data.currentMonth.Moderate),
+                            Severe: Number(data.currentMonth.Severe)
+                        });
+                    }
+                }
+
+                if (chartsContainer.children.length === 0) {
+                    chartsContainer.innerHTML = '<p class="no-data">No results available for the selected date range</p>';
+                }
+
+            } catch (error) {
+                console.error('Error fetching filtered results:', error);
+                document.getElementById('chartsContainer').innerHTML = 
+                    '<p class="error">Error loading filtered results</p>';
+            }
+        }
+
+        // Initialize date inputs with a reasonable range
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+            
+            // Set default end date to current month
+            document.getElementById('endDate').value = `${currentYear}-${currentMonth}`;
+            
+            // Set default start date to 6 months ago
+            const startDate = new Date(currentDate.setMonth(currentDate.getMonth() - 6));
+            const startYear = startDate.getFullYear();
+            const startMonth = (startDate.getMonth() + 1).toString().padStart(2, '0');
+            document.getElementById('startDate').value = `${startYear}-${startMonth}`;
+            
+            fetchPastResults();
+        });
+    </script>
+</body>
+</html> 

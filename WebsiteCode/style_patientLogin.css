@@ -1,0 +1,183 @@
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --background-color: #f8f9fa;
+    --text-color: #333;
+    --light-gray: #e0e0e0;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: rgba(255, 255, 255, 0.95);
+    transition: all 0.3s ease-in-out;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+
+  .navbar.scrolled {
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.98);
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 20px;
+  }
+
+  .navbar a {
+    text-decoration: none;
+    color: var(--secondary-color);
+    font-weight: 600;
+    transition: color 0.3s ease;
+  }
+
+  .navbar a:hover {
+    color: var(--primary-color);
+  }
+
+  .main-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 100px 0 2rem; /* Added top padding to account for sticky header */
+  }
+
+  .login-form {
+    background-color: white;
+    padding: 3rem;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    animation: fadeInUp 1s ease-out;
+  }
+
+  h2 {
+    font-size: 2rem;
+    color: var(--secondary-color);
+    margin-bottom: 2rem;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  input {
+    padding: 12px;
+    border: 1px solid var(--light-gray);
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
+
+  button {
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #2980b9;
+    transform: translateY(-3px);
+  }
+
+  .button-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 0px;
+  }
+
+  #message {
+    margin-top: 1rem;
+    color: var(--primary-color);
+    font-weight: 600;
+  }
+
+  .footer {
+    background-color: var(--secondary-color);
+    color: white;
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 3rem;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .navbar {
+      flex-direction: column;
+      height: auto;
+      padding: 1rem 5%;
+    }
+
+    .nav-links {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .login-form {
+      padding: 2rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    .main-content {
+      padding-top: 150px; /* Increased top padding for mobile to account for larger header */
+    }
+  }

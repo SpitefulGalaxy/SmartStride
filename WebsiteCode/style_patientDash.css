@@ -1,0 +1,408 @@
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2c3e50;
+    --background-color: #ecf0f1;
+    --text-color: #333;
+    --card-background: #fff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background-color: rgba(255, 255, 255, 0.95);
+    transition: all 0.3s ease-in-out;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 5%;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar.scrolled {
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.98);
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: var(--secondary-color);
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: var(--primary-color);
+}
+
+.container {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 100px 40px 20px;
+    display: grid;
+    grid-template-columns: 2fr 400px;
+    gap: 20px;
+}
+
+.combined-column {
+    min-width: 0;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.left-column, .middle-column {
+    min-width: 0;
+}
+
+.right-column {
+    width: 100%;
+}
+
+.card {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    height: fit-content;
+}
+
+.large-card {
+    flex-grow: 1;
+    min-height: 400px;
+    margin-bottom: 0px;
+}
+
+.button {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #2980b9;
+}
+
+h1, h2 {
+    color: var(--secondary-color);
+}
+
+h1 {
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 30px;
+}
+
+h2 {
+    font-size: 1.8em;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 10px;
+    margin-top: 30px;
+}
+
+.patient-info, .clinician-info {
+    line-height: 1.8;
+}
+
+.emg-data {
+    text-align: center;
+}
+
+.emg-data img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.footer {
+    background-color: var(--secondary-color);
+    color: white;
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: auto;
+}
+
+@media (max-width: 1200px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+    
+    .right-column {
+        grid-column: span 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        padding: 80px 20px 10px;
+    }
+    
+    .right-column {
+        grid-column: span 1;
+    }
+}
+
+.severity-scale {
+    padding: 20px;
+    position: relative;
+    margin-bottom: 0px;
+}
+
+.scale-bar {
+    height: 30px;
+    display: flex;
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 0px;
+}
+
+.scale-segment {
+    flex: 1;
+    height: 100%;
+}
+
+.severe { background: #ff4444; }
+.moderate { background: #ffa500; }
+.mild { background: #ffff00; }
+.normal { background: #44ff44; }
+
+.scale-labels {
+    position: absolute;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    bottom: -25px;
+}
+
+.scale-labels span {
+    font-size: 0.8em;
+    transform: translateX(-50%);
+}
+
+.scale-labels span:first-child { transform: translateX(0); }
+.scale-labels span:last-child { transform: translateX(-100%); }
+
+.indicator {
+    width: 20px;
+    height: 20px;
+    background: #333;
+    border-radius: 50%;
+    position: absolute;
+    top: 5px;
+    transform: translateX(-50%);
+    transition: left 0.3s ease;
+    border: 3px solid white;
+}
+
+.severity-text {
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#backToClinicianBtn {
+    display: none; /* Hidden by default */
+}
+
+.goal-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.goal-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.goal-item span {
+    flex-grow: 1;
+}
+
+.delete-goal {
+    background: none;
+    border: none;
+    color: #ff4444;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 5px;
+}
+
+#addGoalForm {
+    margin-top: 15px;
+    padding: 10px;
+}
+
+#newGoalText {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.clinician-only-graphs {
+    margin-top: 0px;
+}
+
+.clinician-only-graphs .card {
+    margin-bottom: 0px;
+}
+
+.clinician-only-graphs canvas {
+    max-height: 300px;
+}
+
+.large-card {
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.emg-section {
+    margin-top: 20px;
+}
+
+.gait-analysis-section {
+    margin-top: 20px;
+}
+
+.left-column .large-card,
+.middle-column .large-card {
+    margin-bottom: 0px;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid var(--background-color);
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.graph-container {
+    position: relative;
+    min-height: 300px;
+}
+
+.loading-text {
+    text-align: center;
+    color: #666;
+    margin-top: 10px;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.legend-text {
+    font-size: 0.9em;
+    color: var(--text-color);
+}
+
+/* styles for severity scale legend */
+.severity-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 0px;
+}
+
+.severity-legend .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.severity-legend .legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.severity-legend .legend-text {
+    font-size: 0.9em;
+    color: var(--text-color);
+}

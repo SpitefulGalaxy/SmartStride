@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Help</title>
+    <link rel="stylesheet" href="style_loginHelp.css">
+</head>
+<body2>
+    <nav class="navbar" id="sticky-header">
+        <a href="index.html" class="logo">SmartStride</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="software.html">Software</a>
+            <a href="device-guide.html">Help</a>
+            <a href="patient-login.html">Login</a>
+        </div>
+      </nav>
+
+    <main class="main-content">
+        <div class="login-form">
+            <h2>Password Reset</h2>
+            <form id="recoveryForm">
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="userType" value="patient" checked> Patient
+                    </label>
+                    <label>
+                        <input type="radio" name="userType" value="doctor"> Doctor
+                    </label>
+                </div>
+                <input type="text" id="username" name="username" placeholder="Username" required>
+                <div id="securityQuestionContainer" style="display: none;">
+                    <p id="securityQuestion"></p>
+                    <input type="text" id="securityAnswer" name="securityAnswer" placeholder="Your Answer">
+                </div>
+                <button type="submit" id="submitButton">Submit</button>
+            </form>
+            <p id="resultMessage"></p>
+        </div>
+        
+        <div id="about" class="section2">
+            <h2>Tips and FAQs</h2>
+            <div class="tip">
+                <strong>Tip:</strong> Create a strong, unique password that you haven't used for other accounts.
+            </div>
+            <div class="tip">
+                <strong>Tip:</strong> Write down your password somewhere safe.
+            </div>
+            <div class="tip">
+                <strong>Tip:</strong> Don't use the same password for multiple accounts.
+            </div>
+            <div class="tip">
+                <strong>Tip:</strong> Don't share your password with anyone.
+            </div>
+        </div>
+
+        <div id="Help" class="section2">
+            <h2>Need Further Assistance?</h2>
+            <p>If you're still having trouble resetting your password, please contact our support team:</p>
+            <p>Email: Cianna2019@gmail.com<br>
+            Hours: Monday to Friday, 9 AM - 5 PM EST</p>
+        </div>
+    </main> 
+        
+    <footer class="footer">
+        <p>&copy; 2024 SmartStride. All rights reserved.</p>
+    </footer>
+</body>
+
+<script>
+    // Sticky header script
+    const header = document.getElementById('sticky-header');
+    let scrolled = false;
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20 && !scrolled) {
+        header.classList.add('scrolled');
+        scrolled = true;
+      } else if (window.scrollY <= 20 && scrolled) {
+        header.classList.remove('scrolled');
+        scrolled = false;
+      }
+    });
+
+    // Add new script for password recovery
+    const recoveryForm = document.getElementById('recoveryForm');
+    const usernameInput = document.getElementById('username');
+    const securityQuestionContainer = document.getElementById('securityQuestionContainer');
+    const securityQuestionElement = document.getElementById('securityQuestion');
+    const securityAnswerInput = document.getElementById('securityAnswer');
+    const submitButton = document.getElementById('submitButton');
+    const resultMessage = document.getElementById('resultMessage');
+
+    let isSecurityQuestionVisible = false;
+    let currentUsername = '';
+    let currentUserType = '';
+    let userData = null;
+    let isPasswordResetStage = false;
+
+    const securityQuestions = {
+        'pet': 'What was the name of your first pet?',
+        'school': 'What elementary school did you attend?',
+        'city': 'In what city were you born?'
+    };
+
+    recoveryForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!isSecurityQuestionVisible) {
+            const username = usernameInput.value;
+            const userType = document.querySelector('input[name="userType"]:checked').value;
+            
+            try {
+                console.log('Sending request with:', { action: 'getQuestion', username, userType });
+                const response = await fetch('https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest/ITW_PasswordRecovery', {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'getQuestion', username, userType }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Received data:', data);
+                
+                const bodyData = JSON.parse(data.body);
+                console.log('Parsed body data:', bodyData);
+
+                if (bodyData.question) {
+                    userData = { username, userType, ...bodyData };
+                    const fullQuestion = securityQuestions[bodyData.question] || bodyData.question;
+                    console.log('Security question received:', fullQuestion);
+                    securityQuestionElement.textContent = fullQuestion;
+                    securityQuestionContainer.style.display = 'block';
+                    securityAnswerInput.required = true;
+                    isSecurityQuestionVisible = true;
+                    usernameInput.style.display = 'none';
+                    document.querySelector('.radio-group').style.display = 'none';
+                    submitButton.textContent = 'Verify Answer';
+                } else {
+                    console.log('No question in parsed body data:', bodyData);
+                    resultMessage.textContent = 'Username not found.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultMessage.textContent = 'An error occurred. Please try again later.';
+            }
+        } else if (!isPasswordResetStage) {
+            const securityAnswer = securityAnswerInput.value;
+            if (!securityAnswer) {
+                resultMessage.textContent = 'Please provide an answer to the security question.';
+                return;
+            }
+
+            console.log('Verifying security answer:', {
+                action: 'verifyAnswer',
+                username: userData.username,
+                userType: userData.userType,
+                answer: securityAnswer
+            });
+
+            try {
+                const response = await fetch('https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest/ITW_PasswordRecovery', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action: 'verifyAnswer', 
+                        username: userData.username, 
+                        userType: userData.userType,
+                        answer: securityAnswer 
+                    }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                console.log('Verify answer response status:', response.status);
+                const data = await response.json();
+                console.log('Verify answer response data:', data);
+                
+                const bodyData = JSON.parse(data.body);
+                console.log('Parsed verify answer body data:', bodyData);
+
+                if (bodyData.verified) {
+                    isPasswordResetStage = true;
+                    securityQuestionContainer.style.display = 'none';
+                    const newPasswordInput = document.createElement('input');
+                    newPasswordInput.type = 'password';
+                    newPasswordInput.id = 'newPassword';
+                    newPasswordInput.name = 'newPassword';
+                    newPasswordInput.placeholder = 'Enter new password';
+                    newPasswordInput.required = true;
+                    securityQuestionContainer.parentNode.insertBefore(newPasswordInput, securityQuestionContainer);
+                    submitButton.textContent = 'Set New Password';
+                    resultMessage.textContent = 'Security answer verified. Please enter your new password.';
+                } else {
+                    resultMessage.textContent = 'Incorrect answer. Please try again.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultMessage.textContent = 'An error occurred. Please try again later.';
+            }
+        } else {
+            const newPassword = document.getElementById('newPassword').value;
+            if (!newPassword) {
+                resultMessage.textContent = 'Please enter a new password.';
+                return;
+            }
+
+            console.log('Setting new password:', {
+                action: 'setNewPassword',
+                username: userData.username,
+                userType: userData.userType,
+                newPassword: newPassword
+            });
+
+            try {
+                const response = await fetch('https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest/ITW_PasswordRecovery', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        action: 'setNewPassword', 
+                        username: userData.username, 
+                        userType: userData.userType,
+                        newPassword: newPassword 
+                    }),
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                console.log('Set new password response status:', response.status);
+                const data = await response.json();
+                console.log('Set new password response data:', data);
+                
+                if (data.statusCode === 200) {
+                    const bodyData = JSON.parse(data.body);
+                    console.log('Parsed set new password body data:', bodyData);
+
+                    if (bodyData.success) {
+                        resultMessage.textContent = 'Your password has been successfully changed. You can now log in with your new password.';
+                        // Optionally, reset the form or redirect to login page
+                        recoveryForm.reset();
+                        isSecurityQuestionVisible = false;
+                        isPasswordResetStage = false;
+                        document.getElementById('newPassword').remove();
+                        securityQuestionContainer.style.display = 'none';
+                        usernameInput.style.display = 'block';
+                        document.querySelector('.radio-group').style.display = 'block';
+                        submitButton.textContent = 'Get Security Question';
+                    } else {
+                        resultMessage.textContent = 'Failed to set new password. Please try again.';
+                    }
+                } else {
+                    resultMessage.textContent = 'An error occurred. Please try again later.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultMessage.textContent = 'An error occurred. Please try again later.';
+            }
+        }
+    });
+</script>
+</html>

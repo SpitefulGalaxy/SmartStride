@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinician Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style_clinicianDash.css">
+</head>
+<body>
+    <nav class="navbar" id="sticky-header">
+        <a href="index.html" class="logo">SmartStride</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="about.html">About</a>
+            <a href="software.html">Software</a>
+            <a href="device-guide.html">Help</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Clinician Dashboard</h1>
+        <div id="clinicianInfo"></div>
+        
+        <h2>List of Patients</h2>
+        <div class="add-patient-form">
+            <input type="text" id="newPatientUsername" placeholder="Enter patient username">
+            <button onclick="addPatient()">Add Patient</button>
+        </div>
+        <table class="patient-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Last Update</th>
+                    <th>Dashboard</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="patientTableBody">
+                <!-- Patient rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+        
+        <h2>Device Status</h2>
+        <p class="device-status" id="deviceStatus">
+            Loading device status...
+        </p>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 SmartStride. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const header = document.getElementById('sticky-header');
+        let scrolled = false;
+
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 20 && !scrolled) {
+                header.classList.add('scrolled');
+                scrolled = true;
+            } else if (window.scrollY <= 20 && scrolled) {
+                header.classList.remove('scrolled');
+                scrolled = false;
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
+            
+            if (!userData) {
+                window.location.href = 'clinician_login.html';
+                return;
+            }
+
+            // Display clinician information
+            document.getElementById('clinicianInfo').innerHTML = `
+                <h2>Welcome, Dr. ${userData.last_name}</h2>
+                <p>Username: ${userData.username}</p>
+            `;
+
+            // Get the table body element
+            const tableBody = document.getElementById('patientTableBody');
+            
+            // Clear any existing rows
+            tableBody.innerHTML = '';
+
+            // Check if patients_list exists and is not empty
+            if (userData.patients_list && userData.patients_list.length > 0) {
+                // Parse the patients list if it's a string
+                const patientsList = typeof userData.patients_list === 'string' 
+                    ? JSON.parse(userData.patients_list) 
+                    : userData.patients_list;
+
+                // Add a row for each patient
+                patientsList.forEach(patientUsername => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${patientUsername}</td>
+                        <td>${new Date().toLocaleString()}</td>
+                        <td>
+                            <button onclick="viewPatientDashboard('${patientUsername}')" class="button">
+                                View
+                            </button>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <span class="dropdown-btn">⋮</span>
+                                <div class="dropdown-content">
+                                    <a href="#" onclick="confirmRemovePatient('${patientUsername}')">Remove Patient</a>
+                                </div>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Update device status
+                document.getElementById('deviceStatus').textContent = 
+                    `Monitoring ${patientsList.length} patient(s)`;
+            } else {
+                // Display message if no patients
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4">No patients assigned yet.</td>
+                    </tr>
+                `;
+                document.getElementById('deviceStatus').textContent = 
+                    'No patients currently being monitored';
+            }
+        });
+
+        // Function to handle viewing patient dashboard
+        function viewPatientDashboard(patientUsername) {
+            // Store the selected patient's username
+            sessionStorage.setItem('selectedPatient', patientUsername);
+            // Redirect to patient dashboard
+            window.location.href = 'patient-dashboard.html';
+        }
+
+        // Function to confirm and remove a patient
+        async function confirmRemovePatient(patientUsername) {
+            if (confirm(`Are you sure you want to remove ${patientUsername} from your list?`)) {
+                try {
+                    const response = await fetch('https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest/RemovePatient', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            clinicianUsername: JSON.parse(sessionStorage.getItem('userData')).username,
+                            patientUsername: patientUsername
+                        })
+                    });
+
+                    if (response.ok) {
+                        // Get current userData
+                        const userData = JSON.parse(sessionStorage.getItem('userData'));
+                        // Update the patients_list
+                        userData.patients_list = userData.patients_list.filter(patient => patient !== patientUsername);
+                        // Save back to sessionStorage
+                        sessionStorage.setItem('userData', JSON.stringify(userData));
+                        
+                        alert(`${patientUsername} has been removed.`);
+                        location.reload();
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Failed to remove patient: ${errorData.message}`);
+                    }
+                } catch (error) {
+                    console.error('Error removing patient:', error);
+                    alert('An error occurred while trying to remove the patient.');
+                }
+            }
+        }
+
+        // Function to add a patient
+        async function addPatient() {
+            const newPatientUsername = document.getElementById('newPatientUsername').value.trim();
+            if (!newPatientUsername) {
+                alert('Please enter a patient username.');
+                return;
+            }
+
+            // Get current userData
+            const userData = JSON.parse(sessionStorage.getItem('userData'));
+            
+            // Check if patient is already in the list
+            if (userData.patients_list && userData.patients_list.includes(newPatientUsername)) {
+                alert('This patient is already in your list.');
+                return;
+            }
+
+            try {
+                const response = await fetch('https://efub6po1y2.execute-api.us-east-2.amazonaws.com/UserPassTest/AddPatient', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        clinicianUsername: userData.username,
+                        patientUsername: newPatientUsername
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Update the patients_list
+                    if (!userData.patients_list) {
+                        userData.patients_list = [];
+                    }
+                    userData.patients_list.push(newPatientUsername);
+                    // Save back to sessionStorage
+                    sessionStorage.setItem('userData', JSON.stringify(userData));
+
+                    alert(`${newPatientUsername} has been added.`);
+                    location.reload();
+                } else {
+                    alert(`Failed to add patient: ${data.message}`);
+                }
+            } catch (error) {
+                console.error('Error adding patient:', error);
+                alert('An error occurred while trying to add the patient.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    if (!dropdown.contains(event.target)) {
+                        dropdown.classList.remove('active');
+                    }
+                });
+            });
+
+            // Toggle dropdown on click
+            document.addEventListener('click', function(event) {
+                if (event.target.matches('.dropdown-btn')) {
+                    // Close all other dropdowns
+                    const dropdowns = document.querySelectorAll('.dropdown');
+                    dropdowns.forEach(dropdown => {
+                        if (dropdown !== event.target.parentElement) {
+                            dropdown.classList.remove('active');
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    event.target.parentElement.classList.toggle('active');
+                    event.stopPropagation();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
